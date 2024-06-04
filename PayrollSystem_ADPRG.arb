@@ -1,0 +1,451 @@
+class PayrollSystem
+    def initialize
+      # Default configuration settings
+      @daily_salary = 500
+      @max_regular_hours = 8
+      # Days Categories
+      # 1 - Normal Work Day
+      # 2 - Normal Rest Day
+      # 3 - Special Non-Working Day
+      # 4 - Special Non-Working Day (on a Rest Day)
+      # 5 - Regular Holiday
+      # 6 - Regular Holiday (on a Rest Day)
+      @days = {
+        "Monday" => 1,
+        "Tuesday" => 1,
+        "Wednesday" => 1,
+        "Thursday" => 1,
+        "Friday" => 1,
+        "Saturday" => 2,
+        "Sunday" => 2
+      }
+      @start_time = 900
+      @end_time = 900
+      @out_times = {}
+      @hourly_rate = compute_hourly_rate
+    end
+
+    def print_config_values
+      category_names = {
+        1 => "Normal Work Day",
+        2 => "Normal Rest Day",
+        3 => "Special Non-Working Day",
+        4 => "Special Non-Working Day (on a Rest Day)",
+        5 => "Regular Holiday",
+        6 => "Regular Holiday (on a Rest Day)"
+      }
+      puts "Daily Salary: Php #{@daily_salary}"
+      puts "Max Regular Hours: #{@max_regular_hours}"
+      puts "Days Categories:"
+      @days.each { |day, category| puts "#{day}: #{category_names[category]}" }
+      puts "Start Time: #{@start_time}"
+      puts "End Time: #{@end_time}"
+      puts "Hourly Rate: #{@hourly_rate}"
+    end
+
+    def compute_hourly_rate
+        @daily_salary.to_f / @max_regular_hours.to_f
+    end
+    
+    def valid_military_time?(input)
+      input.length == 4 && input.match?(/\A\d{4}\z/) && (0..2359).cover?(input.to_i)
+    end
+    
+    def continuous_days?(days)
+        sorted_days = days.sort_by { |day| Date::DAYNAMES.index(day.capitalize) }
+        expected_sequence = sorted_days.first(7)
+      
+        sorted_days == expected_sequence
+    end
+
+    def update_day_classification(days, category)
+        days.each { |day| @days[day] = category }
+    end
+
+    def customize_day_menu
+        loop do
+          puts "Select day customization option"
+          puts "1. Modify Work and Rest Days"
+          puts "2. Set Holidays / Special Non-Working Days"
+          puts "0. Go back"
+          print "Enter your choice: "
+          choice = gets.chomp
+          system("cls") || system("clear") 
+          case choice 
+          when '1'
+            modify_work_and_rest_days
+          when '2'
+            set_holidays_and_special_days
+          when '0'
+            puts "Going back..."
+            sleep(1)
+            system("cls") || system("clear") 
+            break
+          else
+            puts "Invalid choice. Please enter a valid option."
+            sleep(1)
+            system("cls") || system("clear") 
+          end
+        end
+    end
+      
+    def modify_work_and_rest_days
+        puts "Modify Work and Rest Days Menu"
+        puts "Caution! : This will reset previously configured Non-Working Days / Holidays!"
+
+        print "Enter new work days (comma-separated): "
+        new_work_days = gets.chomp.split(',').map(&:strip)
+        print "Enter new rest days (comma-separated): "
+        new_rest_days = gets.chomp.split(',').map(&:strip)
+      
+        if continuous_days?(new_work_days + new_rest_days)
+          update_day_classification(new_work_days, 1)
+          update_day_classification(new_rest_days, 2)
+          system("cls") || system("clear") 
+          puts "Work and Rest Days modified successfully!"
+          sleep(1)
+          system("cls") || system("clear") 
+
+        else
+          system("cls") || system("clear") 
+          puts "Invalid selection. Rest days must be continuous. Please try again."
+          sleep(1)
+          system("cls") || system("clear") 
+        end
+    end
+      
+    def set_holidays_and_special_days
+        puts "Set Holidays / Special Non-Working Days Menu "
+        print "Enter the day you want to edit: "
+        selected_day = gets.chomp.capitalize
+      
+        unless @days.key?(selected_day)
+          system("cls") || system("clear") 
+          puts "Invalid day. Please enter a valid day."
+          sleep(1)
+          system("cls") || system("clear") 
+          return
+        end
+      
+        loop do
+            puts "Select the new category for #{selected_day}:"
+            puts "1 - Special Non-Working Day"
+            puts "2 - Regular Holiday"
+            puts "0 - Go back"
+          
+            print "Enter your choice (0-2): "
+            new_category = gets.chomp.to_i
+            system("cls") || system("clear") 
+            case new_category
+            when 0
+              puts "Going back..."
+              sleep(1)
+              system("cls") || system("clear") 
+              break
+            when 1
+              day_type = @days[selected_day] 
+              @days[selected_day] = day_type + 2
+              puts "Successfully updated #{selected_day} to a Special Non-Working Day!"
+              sleep(1)
+              system("cls") || system("clear") 
+              break
+            when 2 
+              day_type = @days[selected_day] 
+              @days[selected_day] = day_type + 4
+              puts "Successfully updated #{selected_day} to a Regular Holiday!"
+              sleep(1)
+              system("cls") || system("clear") 
+              break
+            else
+              system("cls") || system("clear") 
+              puts "Invalid choice. Please enter a valid option."
+              sleep(1)
+              system("cls") || system("clear") 
+            end
+        end
+    end
+
+    def update_configuration
+        loop do
+          puts <<~MENU
+            Which one of these values would you like to update?
+            1. Daily Salary
+            2. Maximum Regular Work Hours Per Day
+            3. Day Classification
+            4. Employee Start (IN) Time
+            5. Employee End (OUT) Time
+            6. Check program details
+            0. Go Back
+          MENU
+
+          print "Enter your choice (0-6): "
+          choice = gets.chomp
+          system("cls") || system("clear")
+          case choice
+          when '1'
+            # Implement logic to update daily salary
+            old_ds = @daily_salary
+            print "Enter new daily salary: "
+            @daily_salary = gets.chomp.to_i
+            @hourly_rate = compute_hourly_rate
+            system("cls") || system("clear")
+            puts "Successfully updated daily salary from #{old_ds} to #{@daily_salary}"
+            sleep(1)
+            system("cls") || system("clear")
+
+          when '2'
+            # Implement logic to update max regular work hours per day
+            old_maxh = @max_regular_hours
+            print "Enter new max regular work hours per day: "
+            @max_regular_hours = gets.chomp.to_i
+            @hourly_rate = compute_hourly_rate
+            system("cls") || system("clear")
+            puts "Successfully updated max regular work hours per day #{old_maxh} to #{@max_regular_hours}"
+            sleep(1)
+            system("cls") || system("clear")       
+          when '3'              
+              customize_day_menu           
+          when '4'
+              # Implement logic to update employee start (IN) time
+              old_st = @start_time
+              print "Enter new employee start (IN) time: "
+              input = gets.chomp
+              unless valid_military_time?(input)
+                # Invalid input
+                system("cls") || system("clear") 
+                puts "Invalid input. Please enter a valid time in military format (0000 - 2359)."
+                sleep(1)
+                system("cls") || system("clear") 
+                redo # repeat the current iteration of the loop
+              end
+              new_start_time = input.to_i
+            
+              @start_time = new_start_time
+              system("cls") || system("clear")
+              puts "Successfully updated employee start (IN) time #{old_st} to #{@start_time}" 
+              sleep(1)
+              system("cls") || system("clear")                        
+          when '5'
+              # Implement logic to update employee end (OUT) time
+              old_et = @end_time
+              print "Enter new employee end (OUT) time: "
+              input = gets.chomp
+              unless valid_military_time?(input)
+                # Invalid input
+                system("cls") || system("clear") 
+                puts "Invalid input. Please enter a valid time in military format (0000 - 2359)."
+                sleep(1)
+                system("cls") || system("clear") 
+                redo # repeat the current iteration of the loop
+              end
+              new_end_time = input.to_i
+                
+              @end_time = new_end_time
+              system("cls") || system("clear")
+              puts "Successfully updated employee end (OUT) time #{old_et} to #{@end_time}"
+              sleep(1)
+              system("cls") || system("clear") 
+          when '6'
+              print_config_values
+              puts ""
+              loop do
+                puts "Enter 0 to go back."
+                choice = gets.chomp
+              
+              case choice
+                when '0'
+                    system("cls") || system("clear")
+                    puts "Going back..."
+                  
+                    break
+                else
+                    system("cls") || system("clear")
+                    puts "Invalid choice. Please enter 0."
+                    sleep(1)
+                    system("cls") || system("clear") 
+                end
+              end
+          when '0'
+            # Go back to the main menu
+            system("cls") || system("clear")
+            puts "Going back to the main menu..."
+            sleep(1)
+            system("cls") || system("clear")
+            break
+          else
+            system("cls") || system("clear")
+            puts "Invalid choice. Please try again."
+            sleep(1)
+            system("cls") || system("clear")
+          end
+        end        
+    end
+
+    def initialize_out_times
+        @days.each do |day, day_type|
+            puts "Day: #{day}"
+            puts "(Input Enter Only to Skip Day)"
+            print "Please input employee OUT time: "
+            input = gets.chomp
+            
+            if input.empty?
+              # Employee is absent or is not a work day
+              puts "Skipped #{day}."
+              @out_times[day] = @start_time # default end time
+            else
+              unless valid_military_time?(input)
+                puts "Invalid input. Please enter a valid time in military format (0000 - 2359)."
+                redo
+              end
+        
+              @out_times[day] = input.to_i
+            end
+            puts ""
+          end        
+    end
+    
+    def calculate_salary(work_hours, day_category)
+        @hourly_rate = compute_hourly_rate
+          
+        regular_hours, night_shift_hours, regular_overtime_hours, night_shift_overtime_hours = work_hours
+      
+        multipliers = {
+          1 => { base: 1, night_shift: 1.1, overtime: 1.25, night_shift_overtime: 1.375 },
+          2 => { base: 1.3, night_shift: 1.3 * 1.1, overtime: 1.69, night_shift_overtime: 1.859 },
+          3 => { base: 1.3, night_shift: 1.3 * 1.1, overtime: 1.69, night_shift_overtime: 1.859 },
+          4 => { base: 1.5, night_shift: 1.5 * 1.1, overtime: 1.95, night_shift_overtime: 2.145 },
+          5 => { base: 2, night_shift: 2 * 1.1, overtime: 2.6, night_shift_overtime: 2.86 },
+          6 => { base: 2.6, night_shift: 2.6 * 1.1, overtime: 3.38, night_shift_overtime: 3.718 }
+        }
+      
+        raise "Invalid day_category. Supported values: 1, 2, 3, 4, 5, 6" unless multipliers.key?(day_category)
+      
+        base_rate = multipliers[day_category][:base]
+        night_shift_rate = multipliers[day_category][:night_shift]
+        overtime_rate = multipliers[day_category][:overtime]
+        night_shift_overtime_rate = multipliers[day_category][:night_shift_overtime]
+      
+        total_pay = (
+          regular_hours * @hourly_rate * base_rate +
+          night_shift_hours * @hourly_rate * night_shift_rate +
+          regular_overtime_hours * @hourly_rate * overtime_rate +
+          night_shift_overtime_hours * @hourly_rate * night_shift_overtime_rate
+        )
+
+        total_pay = total_pay.round(2)
+
+    end
+      
+      
+    def compute_hours_worked(out_time)
+      regular_work_start = @start_time
+      regular_work_end = @end_time
+    
+      night_shift_start = 2200
+      night_shift_end = 600  
+    
+      if regular_work_start == out_time
+        # Employee had 0 hours worked
+        return [0, 0, 0, 0]
+      end
+
+      night_shift_hours ||= 0
+      regular_overtime_hours ||= 0
+      night_shift_overtime_hours ||= 0
+
+      if out_time <= night_shift_end
+        out_time = out_time + 2400
+      end
+
+      if regular_work_end <= night_shift_end
+        regular_work_end = regular_work_end + 2400
+      end
+    
+      if out_time > regular_work_end
+        if out_time < night_shift_start
+          regular_overtime_hours = [out_time - regular_work_end, 0].max
+        elsif out_time >= night_shift_start
+          regular_overtime_hours = [night_shift_start - regular_work_end, 0].max
+          night_shift_overtime_hours = [out_time - night_shift_start, 0].max
+        end
+      elsif out_time >= night_shift_start && out_time <= regular_work_end
+        night_shift_hours = [out_time - night_shift_start, 0].max
+      end
+    
+      return [8, night_shift_hours/100, regular_overtime_hours/100, night_shift_overtime_hours/100]
+    end
+
+    def generate_payroll
+      # Allow the user to update OUT time for each day of the week
+      # Calculate and display the salary for each day, and the total salary for the week
+      initialize_out_times
+      pay_per_day = {}
+      @out_times.each do |day, out_time|
+        day_type = @days[day]
+        work_hours = compute_hours_worked(out_time)
+        pay_per_day[day] = (calculate_salary(work_hours, day_type))
+      end
+
+      weekly_salary = 0
+      pay_per_day.each do |day, salary|
+        puts "#{day} Salary : Php #{salary}"
+        weekly_salary = weekly_salary + salary
+      end
+      puts "Weekly Salary: #{weekly_salary}"
+
+      puts ""
+      loop do
+        puts "Press 0 to go back."
+        choice = gets.chomp
+      
+        case choice
+        when '0'
+          system("cls") || system("clear")
+          puts "Going back..."   
+          break
+        else
+          system("cls") || system("clear")
+          puts "Invalid choice. Please enter 0."
+          sleep(1)
+          system("cls") || system("clear") 
+        end
+      end
+      
+    end
+  
+    def display_menu
+      puts "Payroll System Menu:"
+      puts "(Don't forget to update IN and OUT times first)"
+      puts "1. Update Configuration"
+      puts "2. Generate Payroll "
+      puts "3. Exit"
+    end
+  
+    def run_system
+      loop do
+        display_menu
+        print "Enter your choice: "
+        choice = gets.chomp
+        system("cls") || system("clear")
+        case choice
+        when '1'
+          update_configuration
+        when '2'
+          generate_payroll
+        when '3'
+          puts "Exiting the system. Goodbye!"
+          sleep(1)
+          system("cls") || system("clear")
+          break
+        else
+          sleep(1)
+          puts "Invalid choice. Please try again."
+        end
+      end
+    end
+  end
+  
+  if __FILE__ == $0
+    payroll_system = PayrollSystem.new
+    payroll_system.run_system
+  end
